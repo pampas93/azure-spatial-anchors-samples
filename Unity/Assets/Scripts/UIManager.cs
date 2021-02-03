@@ -3,6 +3,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using TMPro;
 
 public class UIManager : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class UIManager : MonoBehaviour
     }
 
     [SerializeField] private GameObject UserSelection;
+    [SerializeField] private TMP_Text debugText;
 
     public void ShowUserRoleSelection()
     {
@@ -30,5 +32,10 @@ public class UIManager : MonoBehaviour
     {
         GameManager.Instance.OnRoleSelected((UserRole)role);
         UserSelection.SetActive(false);
+    }
+
+    public void SetDebugText(string str)
+    {
+        debugText.text = str;
     }
 }

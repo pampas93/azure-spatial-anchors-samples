@@ -1,5 +1,7 @@
 ﻿// Author: Abhijit Srikanth (abhijit.93@hotmail.com)
 
+using System;
+using System.Collections;
 using UnityEngine;
 
 public enum AppState
@@ -31,6 +33,9 @@ public class GameManager : MonoBehaviour
         instance = this;
     }
 
+    [SerializeField] private SpatialManager spatialManager;
+    [SerializeField] private PlacePinAR pinPlacement;
+
     private void Start()
     {
         SwitchAppMode(AppState.Start);
@@ -39,10 +44,13 @@ public class GameManager : MonoBehaviour
     private AppState currState = AppState.Empty;
     private UserRole currRole;
 
+    public AppState CurrentState => currState;
+    public bool IsAuthor => currRole == UserRole.Author;
+
     /// <summary>
     /// Switch between states and execute state specific functions
     /// </summary>
-    public void SwitchAppMode(AppState newState, Object data = null)
+    public void SwitchAppMode(AppState newState, System.Object data = null)
     {
         Debug.LogFormat("Switch from {0} to {1}", currState.ToString(), newState.ToString());
         currState = newState;
@@ -51,11 +59,18 @@ public class GameManager : MonoBehaviour
         {
             case AppState.Start:
                 {
+                    spatialManager.SetupStartSession();
                     UIManager.Instance.ShowUserRoleSelection();
                     break;
                 }
             case AppState.AnchorScanning:
                 {
+                    if (IsAuthor)
+                    {
+                        pinPlacement.StartPlacement((newPin) => {
+                            UIManager.Instance.SetDebugText(newPin.name);
+                        });
+                    }
                     Debug.Log("Started scanning");
                     break;
                 }
