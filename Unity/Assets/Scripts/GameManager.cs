@@ -13,8 +13,8 @@ public enum AppState
 
 public enum UserRole
 {
-    Author,
-    User
+    Author = 1,
+    User = 2
 }
 
 public class GameManager : MonoBehaviour
@@ -39,6 +39,9 @@ public class GameManager : MonoBehaviour
     private AppState currState = AppState.Empty;
     private UserRole currRole;
 
+    /// <summary>
+    /// Switch between states and execute state specific functions
+    /// </summary>
     public void SwitchAppMode(AppState newState, Object data = null)
     {
         Debug.LogFormat("Switch from {0} to {1}", currState.ToString(), newState.ToString());

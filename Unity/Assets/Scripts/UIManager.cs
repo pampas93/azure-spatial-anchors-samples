@@ -19,13 +19,16 @@ public class UIManager : MonoBehaviour
         instance = this;
     }
 
+    [SerializeField] private GameObject UserSelection;
+
     public void ShowUserRoleSelection()
     {
-
+        UserSelection.SetActive(true);
     }
 
-    public void OnRoleSelected(UserRole role)
+    public void OnRoleSelected(int role)
     {
-        GameManager.Instance.OnRoleSelected(role);
+        GameManager.Instance.OnRoleSelected((UserRole)role);
+        UserSelection.SetActive(false);
     }
 }
