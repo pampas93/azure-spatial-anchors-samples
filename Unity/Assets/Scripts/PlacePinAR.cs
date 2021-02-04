@@ -35,16 +35,20 @@ public class PlacePinAR : MonoBehaviour
         {
             var hitPose = hits[0].pose;
             pinPos = hitPose.position;
-            UIManager.Instance.SetDebugText("Tap to place pin");
+            if (!foundPlane) 
+            {
+                foundPlane = true;
+                UIManager.Instance.SetDebugText("Tap to place pin");
+            }
         }
 #endif
 
         if (InputManager.Instance.DidClick())
         {
             startPlacement = false;
-            var g = GameObject.Instantiate(spawnObj, pinPos, Quaternion.identity);
-            g.name = "Test pin";
-            OnClick?.Invoke(g.transform);
+            var pin = GameObject.Instantiate(spawnObj, pinPos, Quaternion.identity);
+            pin.name = "Test pin";
+            OnClick?.Invoke(pin.transform);
         }
     }
 
@@ -53,7 +57,7 @@ public class PlacePinAR : MonoBehaviour
     {
         OnClick = onClick;
         startPlacement = true;
-
-        UIManager.Instance.SetDebugText("Detecting surfaces..");
+        foundPlane = false;
+        UIManager.Instance.SetDebugText("Detecting surfaces.. Move device around");
     }
 }

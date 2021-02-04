@@ -1,14 +1,18 @@
 ﻿// Author: Abhijit Srikanth (abhijit.93@hotmail.com)
 
 using System;
+using System.Threading.Tasks;
 using System.Collections;
 using UnityEngine;
+using Microsoft.Azure.SpatialAnchors.Unity;
+using System.IO;
 
 public enum AppState
 {
     Start,
     AnchorScanning,
     AnchorSelect,
+    Save,
     Stop,
     Empty
 }
@@ -38,6 +42,13 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        var path = Path.Combine(Application.persistentDataPath, "anchor.txt");
+        if (File.Exists(path)) {
+            UIManager.Instance.SetDebugText("Fetched anchor ID: " + File.ReadAllText(path));
+        } else {
+            UIManager.Instance.SetDebugText("Anchor file not found");
+        }
+
         SwitchAppMode(AppState.Start);
     }
 
@@ -50,7 +61,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// Switch between states and execute state specific functions
     /// </summary>
-    public void SwitchAppMode(AppState newState, System.Object data = null)
+    public async Task SwitchAppMode(AppState newState, object data = null)
     {
         Debug.LogFormat("Switch from {0} to {1}", currState.ToString(), newState.ToString());
         currState = newState;
@@ -59,7 +70,8 @@ public class GameManager : MonoBehaviour
         {
             case AppState.Start:
                 {
-                    spatialManager.SetupStartSession();
+                    await spatialManager.SetupStartSession();
+                    UIManager.Instance.SetDebugText("Show roles");
                     UIManager.Instance.ShowUserRoleSelection();
                     break;
                 }
@@ -67,8 +79,10 @@ public class GameManager : MonoBehaviour
                 {
                     if (IsAuthor)
                     {
-                        pinPlacement.StartPlacement((newPin) => {
+                        pinPlacement.StartPlacement(async (newPin) => {
+                            newPin.gameObject.AddComponent<CloudNativeAnchor>();
                             UIManager.Instance.SetDebugText(newPin.name);
+                            await SwitchAppMode(AppState.Save, newPin);
                         });
                     }
                     Debug.Log("Started scanning");
@@ -76,6 +90,15 @@ public class GameManager : MonoBehaviour
                 }
             case AppState.AnchorSelect:
                 {
+                    break;
+                }
+            case AppState.Save:
+                {
+                    if (data is Transform newPin)
+                    {
+                        UIManager.Instance.SetDebugText("Saving pin " + newPin.name);
+                        await spatialManager.SaveCurrentObjectAnchorToCloudAsync(newPin.gameObject);
+                    }
                     break;
                 }
             case AppState.Stop:
@@ -95,4 +118,18 @@ public class GameManager : MonoBehaviour
         currRole = role;
         SwitchAppMode(AppState.AnchorScanning);
     }
+
+    // public async void AdvanceDemo()
+    // {
+    //     try
+    //     {
+    //         var advanceDemoTask = SwitchAppMode(AppState.Save);
+    //         await advanceDemoTask;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         // Debug.LogError($"{nameof(DemoScriptBase)} - Error in {nameof(AdvanceDemo)}: {ex.Message} {ex.StackTrace}");
+    //         print($"Demo failed, check debugger output for more information");
+    //     }
+    // }
 }

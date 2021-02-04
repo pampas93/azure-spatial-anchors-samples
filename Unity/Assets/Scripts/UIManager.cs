@@ -36,6 +36,12 @@ public class UIManager : MonoBehaviour
 
     public void SetDebugText(string str)
     {
+        Debug.Log("SpatialNotes: " + str);
         debugText.text = str;
+    }
+
+    public void StartApp()
+    {
+        GameManager.Instance.SwitchAppMode(AppState.Start);
     }
 }
