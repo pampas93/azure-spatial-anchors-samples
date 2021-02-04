@@ -21,8 +21,6 @@ public class PlacePinAR : MonoBehaviour
         screenCenter = new Vector2(Screen.width/2, Screen.height/2);
     }
 
-    public GameObject spawnObj;
-
     private Vector3 pinPos;
     private bool foundPlane = false;
     private void Update()
@@ -46,7 +44,8 @@ public class PlacePinAR : MonoBehaviour
         if (InputManager.Instance.DidClick())
         {
             startPlacement = false;
-            var pin = GameObject.Instantiate(spawnObj, pinPos, Quaternion.identity);
+            var pin = GameObject.Instantiate(GameManager.Instance.SpawnObj, 
+                pinPos, Quaternion.identity);
             pin.name = "Test pin";
             OnClick?.Invoke(pin.transform);
         }

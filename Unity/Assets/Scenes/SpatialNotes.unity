@@ -651,7 +651,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 97a44cfded005244d944146c5a9341f6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  spawnObj: {fileID: 1147623660883556, guid: e593bfccf03b6444da88c7591f906ba8, type: 3}
 --- !u!1 &834617353
 GameObject:
   m_ObjectHideFlags: 0
@@ -1412,6 +1411,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spatialManager: {fileID: 2020767272}
   pinPlacement: {fileID: 758272227}
+  spawnObj: {fileID: 1147623660883556, guid: e593bfccf03b6444da88c7591f906ba8, type: 3}
 --- !u!114 &1465040803
 MonoBehaviour:
   m_ObjectHideFlags: 0

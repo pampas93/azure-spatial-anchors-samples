@@ -17,6 +17,8 @@ public class SpatialManager : MonoBehaviour
     private AnchorLocateCriteria anchorLocateCriteria = null;
     private CloudSpatialAnchor currentCloudAnchor;
     private bool isErrorActive = false;
+    private CloudSpatialAnchorWatcher currentWatcher;
+    private readonly List<string> anchorIdsToLocate = new List<string>();
 
     public async Task SetupStartSession()
     {
@@ -29,8 +31,9 @@ public class SpatialManager : MonoBehaviour
 
         if (!GameManager.Instance.IsAuthor)
         {
-            // Todo (abhi)
-            // ConfigureSession with all anchor ids
+            var anchorList = AnchorUtils.GetSavedAnchorIdentifiers();
+            ShowStatus($"Ready to locate {anchorList.Count} anchors");
+            SetAnchorIdsToLocate(anchorList);
         }
 
         await CloudManager.StartSessionAsync();
@@ -61,10 +64,24 @@ public class SpatialManager : MonoBehaviour
         anchorLocateCriteria = new AnchorLocateCriteria();
     }
 
+#region Callbacks from CloudManager
     private void CloudManager_AnchorLocated(object sender, AnchorLocatedEventArgs args)
     {
         Debug.LogFormat("Anchor recognized as a possible anchor {0} {1}", args.Identifier, args.Status);
-        if (args.Status == LocateAnchorStatus.Located) {}
+        if (args.Status == LocateAnchorStatus.Located) 
+        {
+            var newAnchor = args.Anchor;
+
+            UnityDispatcher.InvokeOnAppThread(() =>
+            {
+                Pose anchorPose = Pose.identity;
+
+#if UNITY_ANDROID || UNITY_IOS
+                anchorPose = newAnchor.GetPose();
+#endif
+                SpawnNewAnchoredObject(anchorPose.position, anchorPose.rotation, newAnchor);
+            });
+        }
     }
 
     private void CloudManager_LocateAnchorsCompleted(object sender, LocateAnchorsCompletedEventArgs args)
@@ -87,6 +104,36 @@ public class SpatialManager : MonoBehaviour
     private void CloudManager_LogDebug(object sender, OnLogDebugEventArgs args)
     {
         Debug.Log(args.Message);
+    }
+#endregion
+
+    public void CreateWatcher()
+    {
+        ShowStatus("Creating watcher");
+        if (currentWatcher != null)
+        {
+            currentWatcher.Stop();
+            currentWatcher = null;
+        }
+
+        try
+        {
+            if ((CloudManager != null) && (CloudManager.Session != null))
+            {
+                currentWatcher = CloudManager.Session.CreateWatcher(anchorLocateCriteria);
+                ShowStatus("Session watcher created succesfully");
+            }
+            else
+            {
+                currentWatcher = null;
+                throw new Exception("CloudManager not setup yet. Cannot create watcher");
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError(ex.Message);
+            ShowStatus(ex.Message);
+        }
     }
 
     /// <summary>
@@ -172,28 +219,19 @@ public class SpatialManager : MonoBehaviour
         #endif
         // HoloLens: The position will be set based on the unityARUserAnchor that was located.
 
-        SpawnOrMoveCurrentAnchoredObject(anchorPose.position, anchorPose.rotation, newPin);
+        MoveAnchoredObject(newPin, anchorPose.position, anchorPose.rotation, currentCloudAnchor);
     }
 
-    private void SpawnOrMoveCurrentAnchoredObject(Vector3 worldPos, Quaternion worldRot, GameObject newPin)
+    private void SpawnNewAnchoredObject(Vector3 worldPos, Quaternion worldRot, CloudSpatialAnchor cloudSpatialAnchor)
     {
-        // // Create the object if we need to, and attach the platform appropriate
-        // // Anchor behavior to the spawned object
-        // if (spawnedObject == null)
-        // {
-        //     // Use factory method to create
-        //     spawnedObject = SpawnNewAnchoredObject(worldPos, worldRot, currentCloudAnchor);
+        ShowStatus("Found and Spawing new anchor");
+        // Create the prefab
+        GameObject newPin = GameObject.Instantiate(
+            GameManager.Instance.SpawnObj, worldPos, worldRot);
 
-        //     // Update color
-        //     spawnedObjectMat = spawnedObject.GetComponent<MeshRenderer>().material;
-        // }
-        // else
-        // {
-        //     // Use factory method to move
-        //     MoveAnchoredObject(spawnedObject, worldPos, worldRot, currentCloudAnchor);
-        // }
-
-        MoveAnchoredObject(newPin, worldPos, worldRot, currentCloudAnchor);
+        // Attach a cloud-native anchor behavior to help keep cloud
+        // and native anchors in sync.
+        newPin.AddComponent<CloudNativeAnchor>();
     }
 
     private void MoveAnchoredObject(GameObject objectToMove, Vector3 worldPos, Quaternion worldRot, CloudSpatialAnchor cloudSpatialAnchor = null)
@@ -238,5 +276,18 @@ public class SpatialManager : MonoBehaviour
         UnityDispatcher.InvokeOnAppThread(() => {
             UIManager.Instance.SetDebugText(string.Format("Error: {0}", exception.Message));
         });
+    }
+
+    private void SetAnchorIdsToLocate(IEnumerable<string> anchorIds)
+    {
+        if (anchorIds == null)
+        {
+            throw new ArgumentNullException(nameof(anchorIds));
+        }
+
+        anchorIdsToLocate.Clear();
+        anchorIdsToLocate.AddRange(anchorIds);
+
+        anchorLocateCriteria.Identifiers = anchorIdsToLocate.ToArray();
     }
 }

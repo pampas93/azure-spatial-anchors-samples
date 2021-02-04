@@ -2,10 +2,8 @@
 
 using System;
 using System.Threading.Tasks;
-using System.Collections;
 using UnityEngine;
 using Microsoft.Azure.SpatialAnchors.Unity;
-using System.IO;
 
 public enum AppState
 {
@@ -39,6 +37,9 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private SpatialManager spatialManager;
     [SerializeField] private PlacePinAR pinPlacement;
+    [SerializeField] private GameObject spawnObj;
+
+    public GameObject SpawnObj => spawnObj;
 
     private void Start()
     {
@@ -63,13 +64,13 @@ public class GameManager : MonoBehaviour
         {
             case AppState.Start:
                 {
-                    await spatialManager.SetupStartSession();
                     UIManager.Instance.SetDebugText("Show roles");
                     UIManager.Instance.ShowUserRoleSelection();
                     break;
                 }
             case AppState.AnchorScanning:
                 {
+                    await spatialManager.SetupStartSession();
                     if (IsAuthor)
                     {
                         pinPlacement.StartPlacement(async (newPin) => {
@@ -78,7 +79,18 @@ public class GameManager : MonoBehaviour
                             await SwitchAppMode(AppState.Save, newPin);
                         });
                     }
-                    Debug.Log("Started scanning");
+                    else
+                    {
+                        if (AnchorUtils.GetSavedAnchorIdentifiers().Count < 1) 
+                        {
+                            UIManager.Instance.SetDebugText("No anchors to locate");
+                        }
+                        else
+                        {
+                            spatialManager.CreateWatcher();
+                        }
+                    }
+                    
                     break;
                 }
             case AppState.AnchorSelect:
