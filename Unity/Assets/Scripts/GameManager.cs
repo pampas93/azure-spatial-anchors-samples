@@ -42,14 +42,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        var path = Path.Combine(Application.persistentDataPath, "anchor.txt");
-        if (File.Exists(path)) {
-            UIManager.Instance.SetDebugText("Fetched anchor ID: " + File.ReadAllText(path));
-        } else {
-            UIManager.Instance.SetDebugText("Anchor file not found");
-        }
-
-        SwitchAppMode(AppState.Start);
+        AnchorUtils.Setup();
     }
 
     private AppState currState = AppState.Empty;

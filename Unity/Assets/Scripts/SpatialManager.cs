@@ -162,7 +162,7 @@ public class SpatialManager : MonoBehaviour
         ShowStatus("Anchor created, yay!");
         
         currentAnchorId = currentCloudAnchor.Identifier;
-        SaveToFile();
+        AnchorUtils.SaveAnchor(currentAnchorId);
 
         // Sanity check that the object is still where we expect
         Pose anchorPose = Pose.identity;
@@ -238,17 +238,5 @@ public class SpatialManager : MonoBehaviour
         UnityDispatcher.InvokeOnAppThread(() => {
             UIManager.Instance.SetDebugText(string.Format("Error: {0}", exception.Message));
         });
-    }
-
-    private void SaveToFile()
-    {
-        var path = Path.Combine(Application.persistentDataPath, "anchor.txt");
-        
-        if (File.Exists(path)) {
-            File.Delete(path);
-        }
-
-        File.Create(path).Dispose();
-        File.WriteAllText(path, currentAnchorId);
     }
 }
