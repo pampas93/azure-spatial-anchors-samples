@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
+using Microsoft.Azure.SpatialAnchors.Unity;
 
 [RequireComponent(typeof(ARRaycastManager))]
 public class PlacePinAR : MonoBehaviour
@@ -36,7 +37,7 @@ public class PlacePinAR : MonoBehaviour
             if (!foundPlane) 
             {
                 foundPlane = true;
-                UIManager.Instance.SetDebugText("Tap to place pin");
+                ShowStatus("Tap to place pin");
             }
         }
 #endif
@@ -57,6 +58,13 @@ public class PlacePinAR : MonoBehaviour
         OnClick = onClick;
         startPlacement = true;
         foundPlane = false;
-        UIManager.Instance.SetDebugText("Detecting surfaces.. Move device around");
+        ShowStatus("Detecting surfaces.. Move device around");
+    }
+
+    private void ShowStatus(string text)
+    {
+        UnityDispatcher.InvokeOnAppThread(() => {
+            UIManager.Instance.SetDebugText(text);
+        });
     }
 }

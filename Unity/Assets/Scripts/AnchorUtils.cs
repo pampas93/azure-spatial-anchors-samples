@@ -62,6 +62,11 @@ public static class AnchorUtils
         return res;
     }
 
+    public static AnchorData GetAnchorData(string id)
+    {
+        return savedAnchors.Find(a => a.ID ==  id);
+    }
+
     private static JObject GetAnchorsData()
     {
         string str = File.ReadAllText(anchorFile);

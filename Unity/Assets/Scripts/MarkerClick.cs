@@ -1,14 +1,21 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿// Author: Abhijit Srikanth (abhijit.93@hotmail.com)
+
+using System;
 using UnityEngine;
 
 public class MarkerClick : MonoBehaviour
 {
-    public Action OnClick;
+    private string anchorIdentifier;
+    private Action onClick;
 
-    private void OnMouseDown()
+    public void MarkerSetup(string id, Action onClick)
     {
-        OnClick?.Invoke();
+        anchorIdentifier = id;
+        this.onClick = onClick;
+    }
+
+    public void OnClick()
+    {
+        onClick?.Invoke();
     }
 }

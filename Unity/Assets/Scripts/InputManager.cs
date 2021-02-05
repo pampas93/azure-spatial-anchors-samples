@@ -19,6 +19,23 @@ public class InputManager : MonoBehaviour
         instance = this;
     }
 
+    void Update()
+    {
+        if ((Input.touchCount > 0) && (Input.GetTouch(0).phase == TouchPhase.Began))
+        {
+            Ray raycast = Camera.main.ScreenPointToRay(Input.GetTouch(0).position);
+            RaycastHit raycastHit;
+            if (Physics.Raycast(raycast, out raycastHit))
+            {
+                var clickComp = raycastHit.collider.GetComponent<MarkerClick>();
+                if (clickComp != null)
+                {
+                    clickComp.OnClick();
+                }
+            }
+        }
+    }
+
     public bool DidClick()
     {
 #if UNITY_EDITOR

@@ -241,6 +241,15 @@ public class SpatialManager : MonoBehaviour
         // Attach a cloud-native anchor behavior to help keep cloud
         // and native anchors in sync.
         newPin.AddComponent<CloudNativeAnchor>();
+
+        // Setup action when anchor pin is clicked (by User)
+        var anchorID = cloudSpatialAnchor.Identifier;
+        var clickComp = newPin.GetComponentInChildren<MarkerClick>();
+        if (clickComp != null) 
+        {
+            clickComp.MarkerSetup(anchorID, () => GameManager.Instance.OnAnchorClick(anchorID));
+        }
+
     }
 
     private void MoveAnchoredObject(GameObject objectToMove, Vector3 worldPos, Quaternion worldRot, CloudSpatialAnchor cloudSpatialAnchor = null)

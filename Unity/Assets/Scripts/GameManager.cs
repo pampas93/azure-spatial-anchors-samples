@@ -148,17 +148,17 @@ public class GameManager : MonoBehaviour
         SwitchAppMode(AppState.AnchorScanning);
     }
 
-    // public async void AdvanceDemo()
-    // {
-    //     try
-    //     {
-    //         var advanceDemoTask = SwitchAppMode(AppState.Save);
-    //         await advanceDemoTask;
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         // Debug.LogError($"{nameof(DemoScriptBase)} - Error in {nameof(AdvanceDemo)}: {ex.Message} {ex.StackTrace}");
-    //         print($"Demo failed, check debugger output for more information");
-    //     }
-    // }
+    public void OnAnchorClick(string id)
+    {
+        if (!IsAuthor)
+        {
+            var anchorData = AnchorUtils.GetAnchorData(id);
+            if (anchorData == null)
+            {
+                UIManager.Instance.SetDebugText("Oops. Couldn't fetch anchor details");
+                return;
+            }
+            UIManager.Instance.LoadAnchorData(anchorData);
+        }
+    }
 }
