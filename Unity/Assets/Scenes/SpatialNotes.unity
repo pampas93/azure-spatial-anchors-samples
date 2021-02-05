@@ -1557,7 +1557,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spatialManager: {fileID: 2020767272}
   pinPlacement: {fileID: 758272227}
-  spawnObj: {fileID: 1147623660883556, guid: e593bfccf03b6444da88c7591f906ba8, type: 3}
+  spawnObj: {fileID: 8663540259185699007, guid: f680a3c241471084aba576969a42b603,
+    type: 3}
 --- !u!114 &1465040803
 MonoBehaviour:
   m_ObjectHideFlags: 0
