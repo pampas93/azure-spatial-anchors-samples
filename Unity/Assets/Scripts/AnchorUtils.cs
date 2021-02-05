@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.IO;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -21,22 +22,42 @@ public static class AnchorUtils
         Debug.Log(anchorFile);
     }
 
-    public static void SaveAnchor(string id)
+    public static void SaveAnchor(AnchorData anchor)
     {
-        var data = GetAnchorsData();
-        var anchors = data["anchors"].Value<JArray>();
-        anchors.Add(id);
-        data["anchors"] = anchors;
-        SaveFile(data);
+        try
+        {
+            var data = GetAnchorsData();
+            var anchors = data["anchors"].Value<JArray>();
+            var jsonObj = JObject.Parse(JsonConvert.SerializeObject(anchor, Formatting.Indented));
+            anchors.Add(jsonObj);
+            data["anchors"] = anchors;
+            SaveFile(data);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError(ex.Message);
+        }
     }
 
+    static List<AnchorData> savedAnchors;
     public static List<string> GetSavedAnchorIdentifiers()
     {
-        string str = File.ReadAllText(anchorFile);
-        var anchors = JObject.Parse(str)["anchors"].Value<JArray>();
+        savedAnchors = new List<AnchorData>();
+        var data = GetAnchorsData();        
+        var anchors = data["anchors"].Value<JArray>();
         List<string> res = new List<string>();
         foreach (var anchor in anchors) {
-            res.Add(anchor.Value<string>());
+            try 
+            {
+                AnchorData obj = JsonConvert.DeserializeObject<AnchorData>(anchor.ToString());                    
+                savedAnchors.Add(obj);
+                res.Add(obj.ID);
+
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError(ex.Message);
+            }
         }
         return res;
     }
@@ -52,6 +73,26 @@ public static class AnchorUtils
         File.WriteAllText(anchorFile, data.ToString());
     }
 
+    public static void DeleteAnchorsFile()
+    {
+        File.Delete(anchorFile);
+    }
+}
+
+public class AnchorData
+{
+    public string ID { get; private set; }
+    public string Timestamp { get; private set; }
+    public string Notes { get; private set; }
+    public bool HasImage { get; private set; }
+    public bool HasAudio { get; private set; }
+
+    public AnchorData(string id, string notes)
+    {
+        ID = id;
+        Timestamp = DateTime.UtcNow.ToString();
+        Notes = notes;
+    }
 }
 /*
 {

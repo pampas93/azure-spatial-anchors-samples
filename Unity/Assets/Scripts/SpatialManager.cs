@@ -137,19 +137,18 @@ public class SpatialManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Saves the current object anchor to the cloud.
+    /// Saves the current object anchor to the cloud; and returns the anchor identifier
     /// </summary>
-    public async Task SaveCurrentObjectAnchorToCloudAsync(GameObject pin)
+    public async Task<string> SaveCurrentObjectAnchorToCloudAsync(GameObject pin)
     {
         try
         {
             // Get the cloud-native anchor behavior
             CloudNativeAnchor cna = pin.GetComponent<CloudNativeAnchor>();
-            ShowStatus("GetComponent success");
 
             // If the cloud portion of the anchor hasn't been created yet, create it
             if (cna.CloudAnchor == null) { cna.NativeToCloud(); }
-            ShowStatus("Got cloud anchor");
+            // ShowStatus("Got cloud anchor");
 
             // Get the cloud portion of the anchor
             CloudSpatialAnchor cloudAnchor = cna.CloudAnchor;
@@ -165,7 +164,6 @@ public class SpatialManager : MonoBehaviour
             }
 
             bool success = false;
-
             ShowStatus("Saving...");
 
             try
@@ -184,33 +182,42 @@ public class SpatialManager : MonoBehaviour
                     ShowStatus("Saved success");
                     // Await override, which may perform additional tasks
                     // such as storing the key in the AnchorExchanger
-                    OnSaveCloudAnchorSuccessfulAsync(pin);
+                    return OnSaveCloudAnchorSuccessfulAsync(pin);
                 }
                 else
                 {
                     OnSaveCloudAnchorFailed(new Exception("Failed to save, but no exception was thrown."));
+                    return null;
                 }
             }
             catch (Exception ex)
             {
                 OnSaveCloudAnchorFailed(ex);
+                return null;
             }
         }
         catch (Exception exe) 
         {
             ShowStatus(exe.Message);
+            return null;
         }
     }
 
-    string currentAnchorId = "";
+    public async Task DeleteAnchorAndCleanUp(GameObject pin)
+    {
+        var cna = pin.GetComponent<CloudNativeAnchor>();
+        if (cna != null && cna.CloudAnchor != null)
+        {
+            await CloudManager.DeleteAnchorAsync(cna.CloudAnchor);
+        }
+        Destroy(pin);
+    }
 
-    private void OnSaveCloudAnchorSuccessfulAsync(GameObject newPin)
+    // On success, returns the anchor ID
+    private string OnSaveCloudAnchorSuccessfulAsync(GameObject newPin)
     {
         ShowStatus("Anchor created, yay!");
         
-        currentAnchorId = currentCloudAnchor.Identifier;
-        AnchorUtils.SaveAnchor(currentAnchorId);
-
         // Sanity check that the object is still where we expect
         Pose anchorPose = Pose.identity;
 
@@ -220,6 +227,8 @@ public class SpatialManager : MonoBehaviour
         // HoloLens: The position will be set based on the unityARUserAnchor that was located.
 
         MoveAnchoredObject(newPin, anchorPose.position, anchorPose.rotation, currentCloudAnchor);
+
+        return currentCloudAnchor.Identifier;
     }
 
     private void SpawnNewAnchoredObject(Vector3 worldPos, Quaternion worldRot, CloudSpatialAnchor cloudSpatialAnchor)
@@ -266,7 +275,7 @@ public class SpatialManager : MonoBehaviour
         });
     }
 
-    protected virtual void OnSaveCloudAnchorFailed(Exception exception)
+    private void OnSaveCloudAnchorFailed(Exception exception)
     {
         // we will block the next step to show the exception message in the UI.
         isErrorActive = true;

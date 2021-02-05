@@ -1,6 +1,7 @@
 ﻿// Author: Abhijit Srikanth (abhijit.93@hotmail.com)
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 using Microsoft.Azure.SpatialAnchors.Unity;
@@ -74,7 +75,9 @@ public class GameManager : MonoBehaviour
                     if (IsAuthor)
                     {
                         pinPlacement.StartPlacement(async (newPin) => {
-                            newPin.gameObject.AddComponent<CloudNativeAnchor>();
+                            var cna = newPin.gameObject.AddComponent<CloudNativeAnchor>();
+                            // If the cloud portion of the anchor hasn't been created yet, create it
+                            if (cna.CloudAnchor == null) { cna.NativeToCloud(); }
                             UIManager.Instance.SetDebugText(newPin.name);
                             await SwitchAppMode(AppState.Save, newPin);
                         });
@@ -101,8 +104,23 @@ public class GameManager : MonoBehaviour
                 {
                     if (data is Transform newPin)
                     {
-                        UIManager.Instance.SetDebugText("Saving pin " + newPin.name);
-                        await spatialManager.SaveCurrentObjectAnchorToCloudAsync(newPin.gameObject);
+                        string anchorId = await Task.FromResult(spatialManager.SaveCurrentObjectAnchorToCloudAsync(newPin.gameObject)).Result;
+                        if (string.IsNullOrEmpty(anchorId))
+                        {
+                            DeleteAnchor(newPin.gameObject);
+                        }
+                        else
+                        {
+                            UIManager.Instance.SetDebugText("Saving anchor with data internally");
+                            // Anchor was saved succesfully on cloud
+                            UIManager.Instance.ShowSaveAnchorUI(anchorId, (anchorData) => {
+                                AnchorUtils.SaveAnchor(anchorData);
+                                SwitchAppMode(AppState.AnchorScanning);
+                            }, () => {
+                                DeleteAnchor(newPin.gameObject);
+                                SwitchAppMode(AppState.AnchorScanning);
+                            });
+                        }
                     }
                     break;
                 }
@@ -115,6 +133,12 @@ public class GameManager : MonoBehaviour
                     Debug.LogError("State not implemented");
                     break;
                 }
+        }
+
+        async void DeleteAnchor(GameObject pin)
+        {
+            UIManager.Instance.SetDebugText("Deleting anchor without save");
+            await spatialManager.DeleteAnchorAndCleanUp(pin);
         }
     }
 
