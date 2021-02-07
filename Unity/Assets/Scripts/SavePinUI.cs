@@ -2,6 +2,7 @@
 
 using System;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class SavePinUI : MonoBehaviour
@@ -9,15 +10,20 @@ public class SavePinUI : MonoBehaviour
     [SerializeField] private TMP_Text anchorID;
     [SerializeField] private TMP_InputField notes;
 
+    [SerializeField] private TMP_Text recordBtnText;
+
     Action<AnchorData> onSave;
     Action onCancel;
+
+    private AnchorData currAnchor;
 
     // Called when the "Save" button is clicked in the Anchor data entry UI
     public void OnSaveClick()
     {
-        var anchor = new AnchorData(anchorID.text, notes.text);
-        AnchorUtils.SaveAnchor(anchor);
-        onSave?.Invoke(anchor);
+        currAnchor.SetNotes(notes.text);
+
+        AnchorUtils.SaveAnchor(currAnchor);
+        onSave?.Invoke(currAnchor);
         ClearSaveUI();
     }
 
@@ -33,6 +39,8 @@ public class SavePinUI : MonoBehaviour
         gameObject.SetActive(true);
         this.onSave = onSave;
         this.onCancel = onCancel;
+
+        currAnchor = new AnchorData(id);
         anchorID.text = id;
     }
 
@@ -43,4 +51,32 @@ public class SavePinUI : MonoBehaviour
         gameObject.SetActive(false);
     }
 
+    bool isRecording = false;
+    public bool IsRecording {
+        get => isRecording;
+        set {
+            isRecording = value;
+            recordBtnText.text = isRecording ? "Stop Record" : "Start Record";
+        }
+    }
+    public void StartStopRecord()
+    {
+        if (IsRecording)
+        {
+            bool res = AudioManager.Instance.StopSaveRecording(currAnchor.GetAudioPath());
+            UIManager.Instance.SetDebugText(res ? "Saved recording" : "Oops, failed to save recording");
+            IsRecording = false;
+        }
+        else
+        {
+            IsRecording = true;
+            UIManager.Instance.SetDebugText("Recording started");
+            AudioManager.Instance.StartRecording();
+        }
+    }
+
+    public void ClearAudio()
+    {
+        currAnchor.DeleteAudio();
+    }
 }

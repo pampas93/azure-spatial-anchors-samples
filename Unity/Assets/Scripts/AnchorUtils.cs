@@ -11,6 +11,8 @@ using UnityEngine;
 public static class AnchorUtils
 {
     static string anchorFile => Path.Combine(Application.persistentDataPath, "anchors.json");
+    
+    public static string AudioDir => Path.Combine(Application.persistentDataPath, "Audio");
 
     public static void Setup()
     {
@@ -19,7 +21,11 @@ public static class AnchorUtils
             File.Create(anchorFile).Dispose();
             File.WriteAllText(anchorFile, "{\"anchors\" : [] }");
         }
-        Debug.Log(anchorFile);
+
+        if (!Directory.Exists(AudioDir)) 
+        {
+            Directory.CreateDirectory(AudioDir);
+        }
     }
 
     public static void SaveAnchor(AnchorData anchor)
@@ -90,13 +96,41 @@ public class AnchorData
     public string Timestamp { get; private set; }
     public string Notes { get; private set; }
     public bool HasImage { get; private set; }
-    public bool HasAudio { get; private set; }
+    public bool HasAudio { get => DoesAudioExist(); }
 
-    public AnchorData(string id, string notes)
+    public AnchorData(string id)
     {
         ID = id;
         Timestamp = DateTime.UtcNow.ToString();
+    }
+
+    public string GetNotes()
+    {
+        return string.IsNullOrEmpty(Notes) ? "No notes available" : Notes;
+    }
+
+    public void SetNotes(string notes)
+    {
         Notes = notes;
+    }
+
+    public string GetAudioPath()
+    {
+        return Path.Combine(AnchorUtils.AudioDir, ID + ".wav");
+    }
+
+    public bool DoesAudioExist()
+    {
+        return File.Exists(GetAudioPath());
+    }
+
+    public void DeleteAudio()
+    {
+        var audioFile = GetAudioPath();
+        if (File.Exists(audioFile))
+        {
+            File.Delete(audioFile);
+        }
     }
 }
 /*

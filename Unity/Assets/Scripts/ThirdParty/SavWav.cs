@@ -33,26 +33,30 @@ public static class SavWav {
 
 	const int HEADER_SIZE = 44;
 
-	public static bool Save(string filename, AudioClip clip) {
-		if (!filename.ToLower().EndsWith(".wav")) {
-			filename += ".wav";
+	public static bool Save(string filepath, AudioClip clip) {
+		if (!filepath.ToLower().EndsWith(".wav")) {
+			filepath += ".wav";
 		}
 
-		var filepath = Path.Combine(Application.persistentDataPath, filename);
+		try 
+		{
+			// Make sure directory exists if user is saving to sub dir.
+			Directory.CreateDirectory(Path.GetDirectoryName(filepath));
 
-		Debug.Log(filepath);
+			using (var fileStream = CreateEmpty(filepath)) {
 
-		// Make sure directory exists if user is saving to sub dir.
-		Directory.CreateDirectory(Path.GetDirectoryName(filepath));
+				ConvertAndWrite(fileStream, clip);
 
-		using (var fileStream = CreateEmpty(filepath)) {
-
-			ConvertAndWrite(fileStream, clip);
-
-			WriteHeader(fileStream, clip);
+				WriteHeader(fileStream, clip);
+			}
+		}
+		catch (Exception ex)
+		{
+			Debug.LogError(ex.Message);
+			return false;
 		}
 
-		return true; // TODO: return false if there's a failure saving the file
+		return true;
 	}
 
 	public static AudioClip TrimSilence(AudioClip clip, float min) {
