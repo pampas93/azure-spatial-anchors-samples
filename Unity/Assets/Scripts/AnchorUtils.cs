@@ -55,7 +55,7 @@ public static class AnchorUtils
         foreach (var anchor in anchors) {
             try 
             {
-                AnchorData obj = JsonConvert.DeserializeObject<AnchorData>(anchor.ToString());                    
+                AnchorData obj = JsonConvert.DeserializeObject<AnchorData>(anchor.ToString());
                 savedAnchors.Add(obj);
                 res.Add(obj.ID);
 
@@ -94,7 +94,7 @@ public class AnchorData
 {
     public string ID { get; private set; }
     public string Timestamp { get; private set; }
-    public string Notes { get; private set; }
+    public string Notes { get; set; }
     public bool HasImage { get; private set; }
     public bool HasAudio { get => DoesAudioExist(); }
 

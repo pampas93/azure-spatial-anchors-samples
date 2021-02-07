@@ -21,8 +21,6 @@ public class SavePinUI : MonoBehaviour
     public void OnSaveClick()
     {
         currAnchor.SetNotes(notes.text);
-
-        AnchorUtils.SaveAnchor(currAnchor);
         onSave?.Invoke(currAnchor);
         ClearSaveUI();
     }
@@ -46,6 +44,7 @@ public class SavePinUI : MonoBehaviour
 
     private void ClearSaveUI()
     {
+        currAnchor = null;
         anchorID.text = "";
         notes.text = "";
         gameObject.SetActive(false);
