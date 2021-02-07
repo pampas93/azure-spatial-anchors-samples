@@ -1,9 +1,13 @@
 ﻿// Author: Abhijit Srikanth (abhijit.93@hotmail.com)
 
 using System;
+using System.IO;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;
+#if PLATFORM_ANDROID
+using UnityEngine.Android;
+#endif
 
 [RequireComponent(typeof(AudioSource))]
 public class AudioManager : MonoBehaviour
@@ -18,6 +22,18 @@ public class AudioManager : MonoBehaviour
     private void Awake()
     {
         instance = this;
+    }
+
+    private void Start()
+    {
+        #if PLATFORM_ANDROID
+        if (!Permission.HasUserAuthorizedPermission(Permission.Microphone))
+        {
+            Permission.RequestUserPermission(Permission.Microphone);
+        }
+        #endif
+
+        audioSource = GetComponent<AudioSource>();
     }
 
     AudioClip currClip;
