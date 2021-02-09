@@ -95,7 +95,7 @@ public class AnchorData
     public string ID { get; private set; }
     public string Timestamp { get; private set; }
     public string Notes { get; set; }
-    public bool HasImage { get; private set; }
+    public bool HasImage { get => DoesImageExist(); }
     public bool HasAudio { get => DoesAudioExist(); }
 
     public AnchorData(string id)
@@ -132,9 +132,40 @@ public class AnchorData
             File.Delete(audioFile);
         }
     }
+
+    public string GetImagePath()
+    {
+        return Path.Combine(AnchorUtils.AudioDir, ID + ".png");
+    }
+
+    public bool DoesImageExist()
+    {
+        return File.Exists(GetImagePath());
+    }
+
+    public void DeleteImage()
+    {
+        var imageFile = GetImagePath();
+        if (File.Exists(imageFile))
+        {
+            File.Delete(imageFile);
+        }
+    }
 }
 /*
 {
-	"anchors": ["a", "b", "c"]
+	"anchors": [{
+        "ID":"asd3awe23123",
+        "Timestamp": "2/9/2021 5:08:13 AM",
+        "Notes": "Just some anchor description"
+        "HasImage": true,
+        "HasAudio": false
+    }, {
+        "ID":"awddasdawd",
+        "Timestamp": "2/9/2021 6:08:13 AM",
+        "Notes": "Just some other anchor description"
+        "HasImage": true,
+        "HasAudio": true
+    }]
 }
 */

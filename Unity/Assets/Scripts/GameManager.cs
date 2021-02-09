@@ -161,4 +161,9 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.LoadAnchorData(anchorData);
         }
     }
+
+    public void CloseApp()
+    {
+        Application.Quit();
+    }
 }

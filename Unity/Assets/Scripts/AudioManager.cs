@@ -1,7 +1,6 @@
 ﻿// Author: Abhijit Srikanth (abhijit.93@hotmail.com)
 
 using System;
-using System.IO;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Networking;

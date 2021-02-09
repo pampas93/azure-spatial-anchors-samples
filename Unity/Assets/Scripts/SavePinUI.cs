@@ -9,7 +9,8 @@ public class SavePinUI : MonoBehaviour
 {
     [SerializeField] private TMP_Text anchorID;
     [SerializeField] private TMP_InputField notes;
-
+    [SerializeField] private GameObject parent;
+    [SerializeField] private GameObject imageCaptureUI;
     [SerializeField] private TMP_Text recordBtnText;
 
     Action<AnchorData> onSave;
@@ -50,6 +51,7 @@ public class SavePinUI : MonoBehaviour
         gameObject.SetActive(false);
     }
 
+#region Recording UI functions
     bool isRecording = false;
     public bool IsRecording {
         get => isRecording;
@@ -58,6 +60,7 @@ public class SavePinUI : MonoBehaviour
             recordBtnText.text = isRecording ? "Stop Record" : "Start Record";
         }
     }
+
     public void StartStopRecord()
     {
         if (IsRecording)
@@ -78,4 +81,35 @@ public class SavePinUI : MonoBehaviour
     {
         currAnchor.DeleteAudio();
     }
+#endregion
+
+#region Capture Image functions
+    public void StartCamera()
+    {
+        imageCaptureUI.SetActive(true);
+        CapturePhoto.Instance.StartCamera();
+        parent.SetActive(false);
+    }
+
+    public void CaptureImage()
+    {
+        CapturePhoto.Instance.Capture(currAnchor.GetImagePath(), 
+            () => {
+                Debug.Log("Pemp Image file exists? : " + System.IO.File.Exists(currAnchor.GetImagePath()));
+                Debug.Log("Pemp Size: " + (new System.IO.FileInfo(currAnchor.GetImagePath())).Length);
+                CloseCameraView();
+            });
+    }
+
+    public void CloseCameraView()
+    {
+        imageCaptureUI.SetActive(false);
+        parent.SetActive(true);
+    }
+
+    public void ClearImage()
+    {
+        currAnchor.DeleteImage();
+    }
+#endregion
 }

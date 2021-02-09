@@ -61,4 +61,9 @@ public class UIManager : MonoBehaviour
     {
         AnchorUtils.DeleteAnchorsFile();
     }
+
+    public void CloseApp()
+    {
+        GameManager.Instance.CloseApp();
+    }
 }
